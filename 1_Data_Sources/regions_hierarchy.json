@@ -1,0 +1,163 @@
+[
+  {
+    "region": "Southeastern",
+    "states": [
+      {
+        "state_code": "SP",
+        "state_name": "Sao Paulo",
+        "cities": [
+          { "city_name": "sao paulo", "avg_lat": -23.5505, "avg_lng": -46.6333 },
+          { "city_name": "campinas", "avg_lat": -22.9056, "avg_lng": -47.0608 },
+          { "city_name": "santos", "avg_lat": -23.9608, "avg_lng": -46.3339 },
+          { "city_name": "guarulhos", "avg_lat": -23.4628, "avg_lng": -46.5333 },
+          { "city_name": "sao bernardo do campo", "avg_lat": -23.6939, "avg_lng": -46.565 },
+          { "city_name": "santo andre", "avg_lat": -23.6666, "avg_lng": -46.5333 },
+          { "city_name": "osasco", "avg_lat": -23.5325, "avg_lng": -46.7917 },
+          { "city_name": "ribeirao preto", "avg_lat": -21.1775, "avg_lng": -47.8103 },
+          { "city_name": "sorocaba", "avg_lat": -23.5017, "avg_lng": -47.4581 },
+          { "city_name": "jundiai", "avg_lat": -23.1864, "avg_lng": -46.8842 }
+        ]
+      },
+      {
+        "state_code": "RJ",
+        "state_name": "Rio de Janeiro",
+        "cities": [
+          { "city_name": "rio de janeiro", "avg_lat": -22.9068, "avg_lng": -43.1729 },
+          { "city_name": "niteroi", "avg_lat": -22.8858, "avg_lng": -43.1153 },
+          { "city_name": "duque de caxias", "avg_lat": -22.7858, "avg_lng": -43.3117 },
+          { "city_name": "sao goncalo", "avg_lat": -22.8269, "avg_lng": -43.0539 },
+          { "city_name": "nova iguacu", "avg_lat": -22.7592, "avg_lng": -43.4511 },
+          { "city_name": "petropolis", "avg_lat": -22.505, "avg_lng": -43.1786 },
+          { "city_name": "campos dos goytacazes", "avg_lat": -21.7642, "avg_lng": -41.3236 }
+        ]
+      },
+      {
+        "state_code": "MG",
+        "state_name": "Minas Gerais",
+        "cities": [
+          { "city_name": "belo horizonte", "avg_lat": -19.9167, "avg_lng": -43.9333 },
+          { "city_name": "uberlandia", "avg_lat": -18.9186, "avg_lng": -48.2772 },
+          { "city_name": "contagem", "avg_lat": -19.9322, "avg_lng": -44.0539 },
+          { "city_name": "juiz de fora", "avg_lat": -21.7594, "avg_lng": -43.3514 },
+          { "city_name": "betim", "avg_lat": -19.9678, "avg_lng": -44.1983 },
+          { "city_name": "montes claros", "avg_lat": -16.735, "avg_lng": -43.8617 }
+        ]
+      }
+    ]
+  },
+  {
+    "region": "South",
+    "states": [
+      {
+        "state_code": "PR",
+        "state_name": "Parana",
+        "cities": [
+          { "city_name": "curitiba", "avg_lat": -25.4297, "avg_lng": -49.2711 },
+          { "city_name": "londrina", "avg_lat": -23.3103, "avg_lng": -51.1628 },
+          { "city_name": "maringa", "avg_lat": -23.4208, "avg_lng": -51.9331 },
+          { "city_name": "ponta grossa", "avg_lat": -25.095, "avg_lng": -50.1614 },
+          { "city_name": "cascavel", "avg_lat": -24.9578, "avg_lng": -53.4589 }
+        ]
+      },
+      {
+        "state_code": "RS",
+        "state_name": "Rio Grande do Sul",
+        "cities": [
+          { "city_name": "porto alegre", "avg_lat": -30.0331, "avg_lng": -51.23 },
+          { "city_name": "caxias do sul", "avg_lat": -29.1678, "avg_lng": -51.1794 },
+          { "city_name": "pelotas", "avg_lat": -31.7653, "avg_lng": -52.3425 },
+          { "city_name": "canoas", "avg_lat": -29.9189, "avg_lng": -51.1781 },
+          { "city_name": "santa maria", "avg_lat": -29.6842, "avg_lng": -53.8069 }
+        ]
+      },
+      {
+        "state_code": "SC",
+        "state_name": "Santa Catarina",
+        "cities": [
+          { "city_name": "florianopolis", "avg_lat": -27.5948, "avg_lng": -48.5482 },
+          { "city_name": "joinville", "avg_lat": -26.3044, "avg_lng": -48.8456 },
+          { "city_name": "blumenau", "avg_lat": -26.9194, "avg_lng": -49.0661 },
+          { "city_name": "itajai", "avg_lat": -26.9078, "avg_lng": -48.6619 },
+          { "city_name": "chapeco", "avg_lat": -27.1006, "avg_lng": -52.6153 }
+        ]
+      }
+    ]
+  },
+  {
+    "region": "Northeast",
+    "states": [
+      {
+        "state_code": "BA",
+        "state_name": "Bahia",
+        "cities": [
+          { "city_name": "salvador", "avg_lat": -12.9714, "avg_lng": -38.509 },
+          { "city_name": "feira de santana", "avg_lat": -12.2667, "avg_lng": -38.9667 },
+          { "city_name": "vitoria da conquista", "avg_lat": -14.8611, "avg_lng": -40.8394 },
+          { "city_name": "camacari", "avg_lat": -12.6975, "avg_lng": -38.3242 }
+        ]
+      },
+      {
+        "state_code": "PE",
+        "state_name": "Pernambuco",
+        "cities": [
+          { "city_name": "recife", "avg_lat": -8.05428, "avg_lng": -34.8813 },
+          { "city_name": "jaboatao dos guararapes", "avg_lat": -8.115, "avg_lng": -34.9178 },
+          { "city_name": "olinda", "avg_lat": -8.0089, "avg_lng": -34.8392 },
+          { "city_name": "caruaru", "avg_lat": -8.2839, "avg_lng": -35.9754 }
+        ]
+      },
+      {
+        "state_code": "CE",
+        "state_name": "Ceara",
+        "cities": [
+          { "city_name": "fortaleza", "avg_lat": -3.7172, "avg_lng": -38.5433 },
+          { "city_name": "caucaia", "avg_lat": -3.7322, "avg_lng": -38.6553 },
+          { "city_name": "juazeiro do norte", "avg_lat": -7.2117, "avg_lng": -39.3131 }
+        ]
+      }
+    ]
+  },
+  {
+    "region": "Central-West",
+    "states": [
+      {
+        "state_code": "DF",
+        "state_name": "Distrito Federal",
+        "cities": [
+          { "city_name": "brasilia", "avg_lat": -15.7942, "avg_lng": -47.8822 }
+        ]
+      },
+      {
+        "state_code": "GO",
+        "state_name": "Goias",
+        "cities": [
+          { "city_name": "goiania", "avg_lat": -16.6869, "avg_lng": -49.2647 },
+          { "city_name": "aparecida de goiania", "avg_lat": -16.8222, "avg_lng": -49.2453 },
+          { "city_name": "anapolis", "avg_lat": -16.3267, "avg_lng": -48.9528 }
+        ]
+      }
+    ]
+  },
+  {
+    "region": "North",
+    "states": [
+      {
+        "state_code": "AM",
+        "state_name": "Amazonas",
+        "cities": [
+          { "city_name": "manaus", "avg_lat": -3.119, "avg_lng": -60.0217 },
+          { "city_name": "itacoatiara", "avg_lat": -3.1431, "avg_lng": -58.4442 }
+        ]
+      },
+      {
+        "state_code": "PA",
+        "state_name": "Para",
+        "cities": [
+          { "city_name": "belem", "avg_lat": -1.4558, "avg_lng": -48.4902 },
+          { "city_name": "anandindeua", "avg_lat": -1.3658, "avg_lng": -48.3744 },
+          { "city_name": "santarem", "avg_lat": -2.4431, "avg_lng": -54.7083 }
+        ]
+      }
+    ]
+  }
+]
