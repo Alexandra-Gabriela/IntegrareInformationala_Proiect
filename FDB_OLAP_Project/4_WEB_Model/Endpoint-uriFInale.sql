@@ -255,3 +255,174 @@ END;
 /
 
 --http://localhost:8080/ords/fdbo/performanta/
+
+
+GRANT CREATE VIEW, RESOURCE, CONNECT TO FDBO;
+
+GRANT SELECT ON SYS.V_OLIST_ORDERS_ACCESS TO FDBO;
+GRANT SELECT ON SYS.PRODUCTS_VIEW TO FDBO;
+GRANT SELECT ON SYS.CATEGORIES_VIEW TO FDBO;
+GRANT SELECT ON SYS.OLIST_SELLERS_VIEW_MONGODB TO FDBO;
+GRANT SELECT ON SYS.OLIST_REGIONS_VIEW_MONGODB TO FDBO;
+
+COMMIT;
+
+
+
+BEGIN
+    EXECUTE IMMEDIATE 'DROP VIEW VW_PARETO_ORASE';
+    EXECUTE IMMEDIATE 'DROP VIEW VW_DOMINANTA_CATEGORII';
+    EXECUTE IMMEDIATE 'DROP VIEW VW_EFICIENTA_LOGISTICA';
+EXCEPTION WHEN OTHERS THEN NULL;
+END;
+/
+
+
+-- Analiza Pareto
+CREATE OR REPLACE VIEW VW_PARETO_ORASE AS
+WITH CitySales AS (
+    SELECT s.seller_city, reg.region_name, SUM(ord.V_TOTAL_AMOUNT) AS venit_oras
+    FROM SYS.V_OLIST_ORDERS_ACCESS ord
+    JOIN SYS.OLIST_SELLERS_VIEW_MONGODB s ON TRIM(ord.V_SELLER_ID) = TRIM(s.seller_id)
+    JOIN SYS.OLIST_REGIONS_VIEW_MONGODB reg ON LOWER(TRIM(s.seller_city)) = LOWER(TRIM(reg.city_name))
+    GROUP BY s.seller_city, reg.region_name
+),
+RunningStats AS (
+    SELECT region_name AS macro_regiune, seller_city, venit_oras,
+           SUM(venit_oras) OVER (PARTITION BY region_name ORDER BY venit_oras DESC) AS cumulative_sales,
+           SUM(venit_oras) OVER (PARTITION BY region_name) AS total_regiune
+    FROM CitySales
+)
+SELECT macro_regiune, seller_city, venit_oras,
+       ROUND((cumulative_sales / NULLIF(total_regiune, 0)) * 100, 2) AS procent_cumulat
+FROM RunningStats;
+
+-- Dominanța Categoriilor
+CREATE OR REPLACE VIEW VW_DOMINANTA_CATEGORII AS
+SELECT reg.region_name AS regiune, c.product_category_name AS categorie,
+       SUM(ord.V_TOTAL_AMOUNT) AS vanzari_categorie,
+       ROUND(100 * RATIO_TO_REPORT(SUM(ord.V_TOTAL_AMOUNT)) OVER (PARTITION BY reg.region_name), 2) AS cota_piata
+FROM SYS.V_OLIST_ORDERS_ACCESS ord
+JOIN SYS.PRODUCTS_VIEW p ON TRIM(ord.V_PRODUCT_ID) = TRIM(p.product_id)
+JOIN SYS.CATEGORIES_VIEW c ON p.category_id = c.category_id
+JOIN SYS.OLIST_SELLERS_VIEW_MONGODB s ON TRIM(ord.V_SELLER_ID) = TRIM(s.seller_id)
+JOIN SYS.OLIST_REGIONS_VIEW_MONGODB reg ON LOWER(TRIM(s.seller_city)) = LOWER(TRIM(reg.city_name))
+GROUP BY reg.region_name, c.product_category_name;
+
+-- Eficiența Logistică
+CREATE OR REPLACE VIEW VW_EFICIENTA_LOGISTICA AS
+SELECT reg.state_name AS stat_brazilia,
+       ROUND(SUM(ord.V_TOTAL_AMOUNT) / NULLIF(SUM(p.product_weight_g / 1000), 0), 2) AS venit_per_kg
+FROM SYS.V_OLIST_ORDERS_ACCESS ord
+JOIN SYS.PRODUCTS_VIEW p ON TRIM(ord.V_PRODUCT_ID) = TRIM(p.product_id)
+JOIN SYS.OLIST_SELLERS_VIEW_MONGODB s ON TRIM(ord.V_SELLER_ID) = TRIM(s.seller_id)
+JOIN SYS.OLIST_REGIONS_VIEW_MONGODB reg ON LOWER(TRIM(s.seller_city)) = LOWER(TRIM(reg.city_name))
+GROUP BY reg.state_name
+HAVING SUM(p.product_weight_g) > 0;
+
+
+CREATE OR REPLACE VIEW FDBO.VW_PARETO_ORASE AS 
+SELECT * FROM SYS.V_REST_PARETO_ORASE;
+
+SELECT owner, object_name, status 
+FROM all_objects 
+WHERE object_name = 'VW_PARETO_ORASE' AND owner = 'FDBO';
+
+BEGIN
+    ORDS.ENABLE_SCHEMA(
+        p_enabled             => TRUE,
+        p_schema              => 'FDBO',
+        p_url_mapping_pattern => 'fdbo'
+    );
+
+    ORDS.ENABLE_OBJECT(
+        p_enabled      => TRUE,
+        p_schema       => 'FDBO',           
+        p_object       => 'VW_PARETO_ORASE', 
+        p_object_type  => 'VIEW',
+        p_object_alias => 'pareto-analiza'
+    );
+
+    COMMIT;
+END;
+/
+
+-- 1. Dominanța Categoriilor
+CREATE OR REPLACE VIEW FDBO.VW_DOMINANTA_CATEGORII AS 
+SELECT * FROM SYS.V_REST_DOMINANTA_CATEGORII;
+
+-- 2. Eficiența Logistică
+CREATE OR REPLACE VIEW FDBO.VW_EFICIENTA_LOGISTICA AS 
+SELECT * FROM SYS.V_REST_EFICIENTA_LOGISTICA;
+
+
+BEGIN
+    -- Activăm fiecare obiect nou creat în FDBO
+    
+    -- URL: .../fdbo/categorii-regiuni/
+    ORDS.ENABLE_OBJECT(
+        p_enabled      => TRUE, 
+        p_schema       => 'FDBO', 
+        p_object       => 'VW_DOMINANTA_CATEGORII', 
+        p_object_type  => 'VIEW',
+        p_object_alias => 'categorii-regiuni'
+    );
+
+    -- URL: .../fdbo/eficienta-logistica/
+    ORDS.ENABLE_OBJECT(
+        p_enabled      => TRUE, 
+        p_schema       => 'FDBO', 
+        p_object       => 'VW_EFICIENTA_LOGISTICA', 
+        p_object_type  => 'VIEW',
+        p_object_alias => 'eficienta-logistica'
+    );
+
+    COMMIT;
+END;
+/
+
+BEGIN
+    EXECUTE IMMEDIATE 'ALTER SESSION SET CURRENT_SCHEMA = FDBO';
+
+    ORDS.ENABLE_SCHEMA(
+        p_enabled             => TRUE,
+        p_schema              => 'FDBO',
+        p_url_mapping_pattern => 'fdbo',
+        p_auto_rest_auth      => FALSE
+    );
+
+    ORDS_METADATA.OAUTH.CREATE_CLIENT(
+        p_name            => 'analyst_app',
+        p_grant_type      => 'client_credentials',
+        p_owner           => 'FDBO', 
+        p_description     => 'Client analize Olist',
+        p_support_email   => 'admin@olist.ro',
+        p_privilege_names => 'PRIV_HIBRID_REPORTS'
+    );
+
+    COMMIT;
+    
+    EXECUTE IMMEDIATE 'ALTER SESSION SET CURRENT_SCHEMA = SYS';
+    DBMS_OUTPUT.PUT_LINE('SUCCES! Clientul a fost creat.');
+EXCEPTION
+    WHEN OTHERS THEN
+        DBMS_OUTPUT.PUT_LINE('Eroare: ' || SQLERRM);
+        EXECUTE IMMEDIATE 'ALTER SESSION SET CURRENT_SCHEMA = SYS';
+END;
+/
+
+
+BEGIN
+    EXECUTE IMMEDIATE 'ALTER SESSION SET CURRENT_SCHEMA = FDBO';
+
+    ORDS.ENABLE_SCHEMA(
+        p_enabled             => TRUE,
+        p_schema              => 'FDBO',
+        p_url_mapping_pattern => 'fdbo',
+        p_auto_rest_auth      => FALSE
+    );
+    
+    COMMIT;
+    DBMS_OUTPUT.PUT_LINE('Schema FDBO a fost resetata. Incearca acum in browser.');
+END;
+/
