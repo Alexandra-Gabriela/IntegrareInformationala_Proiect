@@ -29,7 +29,6 @@ JOIN olist_regions_view_mongodb r ON 1=1
 WHERE ROWNUM <= 10;
 
 
-
 -- VIEW FINAL: INTEGRARE MULTI-SURSA (ECOMMERCE TOTAL)
 CREATE OR REPLACE VIEW V_ULTIMATE_OLIST_REPORT AS
 SELECT 
@@ -160,63 +159,38 @@ SELECT * FROM V_OLIST_ORDERS_ACCESS
 
 
 
-
-
-
-
-
-
-
-
-
-
-
-
-
 -----------------------------------VIew final de integrare
 
---------------------------------------------------------------------------------
--- VIEW: V_ULTIMATE_OLIST_REPORT
--- Unește: CSV (Local) + Postgres (REST) + MongoDB (REST)
---------------------------------------------------------------------------------
 CREATE OR REPLACE VIEW V_ULTIMATE_OLIST_REPORT AS
 SELECT 
-    -- 1. Date provenite din CSV (External Tables)
     ord.V_ORDER_ID        AS comanda_id,
     ord.V_PAYMENT_METHOD  AS metoda_plata,
     ord.V_TOTAL_AMOUNT    AS valoare_totala,
     
-    -- 2. Date provenite din Postgres (via PostgREST)
     p.product_id          AS produs_id,
     c.product_category_name AS categorie_portugheza,
     p.product_weight_g    AS greutate_g,
     
-    -- 3. Date provenite din MongoDB (via RESTHeart)
     s.seller_id           AS vanzator_id,
     s.seller_city         AS oras_vanzator,
     reg.state_name        AS stat_brazilia,
     reg.region_name       AS macro_regiune
 FROM V_OLIST_ORDERS_ACCESS ord                                
--- Join cu Postgres (identificăm produsul din comanda CSV în catalogul Postgres)
 JOIN products_view p 
     ON TRIM(ord.V_PRODUCT_ID) = TRIM(p.product_id)       
 JOIN categories_view c 
     ON p.category_id = c.category_id       
--- Join cu MongoDB (identificăm locația vânzătorului din MongoDB)
 LEFT JOIN olist_sellers_view_mongodb s 
     ON TRIM(ord.V_SELLER_ID) = TRIM(s.seller_id)
--- Join ierarhic în interiorul MongoDB (asociem orașul cu regiunea geografică)
 LEFT JOIN olist_regions_view_mongodb reg 
     ON LOWER(TRIM(s.seller_city)) = LOWER(TRIM(reg.city_name));
 
---Top Regiuni după Vânzări (Date din CSV + Mongo):
 SELECT macro_regiune, SUM(valoare_totala) as total_vanzari, COUNT(comanda_id) as nr_comenzi
 FROM V_ULTIMATE_OLIST_REPORT
 WHERE macro_regiune IS NOT NULL
 GROUP BY macro_regiune
 ORDER BY total_vanzari DESC;
 
---Greutatea medie a produselor vândute pe fiecare Stat (Date din Postgres + Mongo + CSV):
 SELECT stat_brazilia, AVG(greutate_g) as greutate_medie
 FROM V_ULTIMATE_OLIST_REPORT
 WHERE stat_brazilia IS NOT NULL
