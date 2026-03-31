@@ -1,5 +1,4 @@
 BEGIN
-  -- Permisiune pentru Postgres (PostgREST)
   DBMS_NETWORK_ACL_ADMIN.append_host_ace(
     host => '127.0.0.1',
     lower_port => 3000,
@@ -8,7 +7,6 @@ BEGIN
                        principal_name => 'SYS', 
                        principal_type => xs_acl.ptype_db));
 
-  -- Permisiune pentru MongoDB (RESTHeart)
   DBMS_NETWORK_ACL_ADMIN.append_host_ace(
     host => '127.0.0.1',
     lower_port => 8081,
@@ -23,36 +21,32 @@ END;
 SELECT status FROM all_objects WHERE owner = 'SYS' AND object_name = 'V_ULTIMATE_OLIST_REPORT';
 
 
--- Dăm drepturi pe sursele de date (View-urile intermediare)
 GRANT SELECT ON SYS.V_OLIST_ORDERS_ACCESS TO FDBO;
 GRANT SELECT ON SYS.products_view TO FDBO;
 GRANT SELECT ON SYS.categories_view TO FDBO;
 GRANT SELECT ON SYS.olist_sellers_view_mongodb TO FDBO;
 GRANT SELECT ON SYS.olist_regions_view_mongodb TO FDBO;
 
--- Dăm drepturi pe funcțiile de rețea (ca să poată interoga Postgres/Mongo)
 GRANT EXECUTE ON SYS.get_rest_data TO FDBO;
 GRANT EXECUTE ON SYS.get_restheart_data_media TO FDBO;
-
 
 
 GRANT SELECT ON SYS.PRODUCTS_VIEW TO FDBO;
 GRANT SELECT ON SYS.V_OLIST_ORDERS_ACCESS TO FDBO;
 GRANT SELECT ON SYS.OLIST_SELLERS_VIEW_MONGODB TO FDBO;
 GRANT SELECT ON SYS.V_ULTIMATE_OLIST_REPORT TO FDBO;
--- Creăm piesele lipsă în FDBO
+
 
 CREATE OR REPLACE VIEW FDBO.PRODUCTS_VIEW AS SELECT * FROM SYS.PRODUCTS_VIEW;
 CREATE OR REPLACE VIEW FDBO.V_OLIST_ORDERS_ACCESS AS SELECT * FROM SYS.V_OLIST_ORDERS_ACCESS;
 CREATE OR REPLACE VIEW FDBO.OLIST_SELLERS_VIEW_MONGODB AS SELECT * FROM SYS.OLIST_SELLERS_VIEW_MONGODB;
 CREATE OR REPLACE VIEW FDBO.V_ULTIMATE_OLIST_REPORT AS SELECT * FROM SYS.V_ULTIMATE_OLIST_REPORT;
--- Doar ca să fim sigure că totul e sincronizat, re-creăm și raportul final în FDBO
+
 CREATE OR REPLACE VIEW FDBO.V_ULTIMATE_OLIST_REPORT AS SELECT * FROM SYS.V_ULTIMATE_OLIST_REPORT;
 
 COMMIT;
 
 BEGIN
-  -- Activăm schema
   ORDS.ENABLE_SCHEMA(
     p_enabled => TRUE,
     p_schema => 'FDBO',
@@ -61,7 +55,6 @@ BEGIN
     p_auto_rest_auth => FALSE
   );
 
-  -- Activăm obiectul
   ORDS.ENABLE_OBJECT(
     p_enabled => TRUE,
     p_schema => 'FDBO',
@@ -92,13 +85,11 @@ END;
 -------------------------------------------------------------------------
 
 BEGIN
-    -- Specificăm clar că vizăm FDBO, nu contează că suntem logați ca SYS
     ORDS.ENABLE_SCHEMA(
         p_enabled => FALSE,
         p_schema  => 'FDBO'
     );
     
-    -- Curățăm metadatele pentru FDBO
     ORDS.drop_rest_for_schema('FDBO');
     
     COMMIT;
@@ -106,7 +97,6 @@ END;
 /
 
 BEGIN
-    -- Activăm schema FDBO cu mapping-ul 'fdbo'
     ORDS.ENABLE_SCHEMA(p_enabled => TRUE,
                        p_schema => 'FDBO',
                        p_url_mapping_type => 'BASE_PATH',
@@ -120,9 +110,8 @@ END;
 ----http://localhost:8080/ords/fdbo/metadata-catalog/
 ----http://localhost:8080/ords/fdbo/ultimate_report/
 
--- 3. Activăm obiectele (View-urile) ca Endpoint-uri individuale
 BEGIN
-    -- Endpoint 1: Raportul Complet (Hibrid CSV + Postgres + Mongo)
+    -- Endpoint 1: Raportul Complet 
     -- URL: http://localhost:8080/ords/fdbo/ultimate_report/
     ORDS.ENABLE_OBJECT(p_enabled => TRUE,
                        p_schema => 'FDBO',
@@ -201,7 +190,6 @@ GRANT SELECT ON FDBO.V_PAYMENT_BY_REGION TO ORDS_METADATA;
 GRANT SELECT ON FDBO.V_SELLER_PERFORMANCE TO ORDS_METADATA;
 
 --http://localhost:8080/ords/fdbo/plati/
--- A. Creăm View-ul de Plăți (Asigură-te că rulezi asta prima dată!)
 CREATE OR REPLACE VIEW FDBO.V_PAYMENT_BY_REGION AS
 SELECT 
     reg.region_name         AS macro_regiune,
@@ -216,7 +204,6 @@ GROUP BY reg.region_name, ord.V_PAYMENT_METHOD
 ORDER BY reg.region_name, numar_utilizari DESC;
 
 --http://localhost:8080/ords/fdbo/hibrid/performanta_vanzatori
--- B. Creăm View-ul de Performanță (Folosind coloanele confirmate de DESC)
 CREATE OR REPLACE VIEW FDBO.V_SELLER_PERFORMANCE AS
 SELECT 
     s.seller_city           AS oras_vanzator,
@@ -246,8 +233,6 @@ END;
 /
 
 BEGIN
-    -- Pasul 1: Activăm schema FDBO (dacă nu e deja)
-    -- Atenție: Parametrul p_schema trebuie să fie FDBO
     ORDS.ENABLE_SCHEMA(
         p_enabled             => TRUE,
         p_schema              => 'FDBO',
@@ -256,8 +241,6 @@ BEGIN
         p_auto_rest_auth      => FALSE
     );
 
-    -- Pasul 2: Activăm obiectul folosind contextul FDBO
-    -- Folosim direct procedura de activare obiect
     ORDS.ENABLE_OBJECT(
         p_enabled      => TRUE,
         p_schema       => 'FDBO',

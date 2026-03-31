@@ -43,9 +43,7 @@ SELECT
     reg.region_name AS regiune,
     c.product_category_name AS categorie,
     SUM(ord.V_TOTAL_AMOUNT) AS vanzari_categorie,
-    -- RATIO_TO_REPORT: Calculeaza ponderea categoriei in totalul regiunii
     ROUND(100 * RATIO_TO_REPORT(SUM(ord.V_TOTAL_AMOUNT)) OVER (PARTITION BY reg.region_name), 2) || '%' AS cota_piata_regiune,
-    -- RANK: Clasamentul categoriei in regiune
     RANK() OVER (PARTITION BY reg.region_name ORDER BY SUM(ord.V_TOTAL_AMOUNT) DESC) AS pozitie_top
 FROM V_OLIST_ORDERS_ACCESS ord
 JOIN products_view p ON TRIM(ord.V_PRODUCT_ID) = TRIM(p.product_id)
@@ -61,7 +59,6 @@ SELECT
     reg.state_name AS stat_brazilia,
     ROUND(AVG(p.product_weight_g), 2) AS greutate_medie_g,
     ROUND(SUM(ord.V_TOTAL_AMOUNT) / NULLIF(SUM(p.product_weight_g / 1000), 0), 2) AS venit_per_kg,
-    -- Analiza ferestrei: Media venitului pe kg la nivel de intreaga tara pentru comparatie
     ROUND(AVG(SUM(ord.V_TOTAL_AMOUNT) / NULLIF(SUM(p.product_weight_g / 1000), 0)) OVER (), 2) AS medie_nationala_venit_kg
 FROM V_OLIST_ORDERS_ACCESS ord
 JOIN products_view p ON TRIM(ord.V_PRODUCT_ID) = TRIM(p.product_id)
@@ -114,7 +111,6 @@ WITH CategoryStats AS (
         c.product_category_name AS categorie,
         p.product_id,
         ord.V_TOTAL_AMOUNT AS pret,
-        -- Calculam media si deviatia standard pe categorie (Window Functions)
         AVG(ord.V_TOTAL_AMOUNT) OVER (PARTITION BY c.product_category_name) AS medie_cat,
         STDDEV(ord.V_TOTAL_AMOUNT) OVER (PARTITION BY c.product_category_name) AS stddev_cat
     FROM V_OLIST_ORDERS_ACCESS ord
