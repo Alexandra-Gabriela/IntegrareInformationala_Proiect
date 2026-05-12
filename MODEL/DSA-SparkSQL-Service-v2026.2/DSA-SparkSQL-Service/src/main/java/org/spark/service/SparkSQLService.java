@@ -1,5 +1,6 @@
 package org.spark.service;
 
+import jakarta.annotation.PostConstruct;
 import org.apache.spark.sql.SparkSession;
 import org.apache.spark.sql.hive.thriftserver.HiveThriftServer2;
 import org.springframework.core.io.ClassPathResource;
@@ -25,7 +26,7 @@ public class SparkSQLService {
         executeSqlScript("scripts/SparkSQL_OLAP_Multidimensional_Analytical.sql");
     }
 
-    private void startThriftServer2(){
+    private void startThriftServer2() {
         logger.info(">>> HiveThriftServer2 Starting ....");
         this.spark = SparkSession.builder()
                 .master("local[*]")
@@ -39,35 +40,36 @@ public class SparkSQLService {
         logger.info(">>> HiveThriftServer2 started successfully!");
     }
 
-    private void executeSqlScript(String scriptPath) {
-        logger.info(">>> Running initialization script: " + scriptPath);
+    @PostConstruct
+    public void init() {
+        // Rulăm pe un fir separat pentru a nu bloca pornirea aplicației
+        new Thread(() -> {
+            try {
+                logger.info(">>> ASTEPTARE 7 SECUNDE PENTRU START SERVER...");
+                Thread.sleep(7000);
+                executeSqlScript("scripts/SparkSQL_OLAP_Multidimensional_Analytical.sql");
+                logger.info(">>> PIPELINE SQL COMPLETA!");
+            } catch (Exception e) {
+                e.printStackTrace();
+            }
+        }).start();
+    }
+
+    private void executeSqlScript(String path) {
         try {
-            ClassPathResource resource = new ClassPathResource(scriptPath);
-            BufferedReader reader = new BufferedReader(new InputStreamReader(resource.getInputStream()));
+            org.springframework.core.io.ClassPathResource res = new org.springframework.core.io.ClassPathResource(path);
+            java.io.BufferedReader reader = new java.io.BufferedReader(new java.io.InputStreamReader(res.getInputStream()));
+            String content = reader.lines().filter(line -> !line.trim().startsWith("--")).collect(java.util.stream.Collectors.joining(" "));
 
-            // Citim fișierul și eliminăm comentariile pentru a nu bloca Spark
-            String scriptContent = reader.lines()
-                    .filter(line -> !line.trim().startsWith("--"))
-                    .collect(Collectors.joining(" "));
-
-            // Împărțim în comenzi individuale după ';'
-            String[] queries = scriptContent.split(";");
-
-            for (String query : queries) {
-                String cleanQuery = query.trim();
-                if (!cleanQuery.isEmpty()) {
-                    try {
-                        logger.info(">>> Executing Spark SQL Query...");
-                        this.spark.sql(cleanQuery);
-                    } catch (Exception e) {
-                        // Unele drop-uri pot eșua dacă view-ul nu există, e normal
-                        logger.warning(">>> Query warning (skipping): " + e.getMessage());
-                    }
+            for (String sql : content.split(";")) {
+                if (!sql.trim().isEmpty()) {
+                    logger.info(">>> EXECUTARE: " + sql.trim());
+                    // CRITIC: .collect() forțează Spark să facă apelurile HTTP către JPA/Mongo
+                    this.spark.sql(sql.trim()).collect();
                 }
             }
-            logger.info(">>> Spark SQL initialization completed.");
         } catch (Exception e) {
-            logger.severe(">>> CRITICAL ERROR: Failed to execute SQL script: " + e.getMessage());
+            logger.severe("EROARE SCRIPT: " + e.getMessage());
         }
     }
 }

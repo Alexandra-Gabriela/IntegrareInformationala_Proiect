@@ -6,6 +6,7 @@ import com.vaadin.flow.component.orderedlayout.VerticalLayout;
 import com.vaadin.flow.router.PageTitle;
 import com.vaadin.flow.router.Route;
 import org.j4di.visualisation.MainView;
+import org.j4di.visualisation.olap.analytical.views.sales.OLAP_FACTS_SALES_AMOUNT;
 import org.springframework.core.ParameterizedTypeReference;
 import org.springframework.http.HttpEntity;
 import org.springframework.http.HttpHeaders;
@@ -41,8 +42,12 @@ public class DataGrid_OLAP_FACTS_SALES_AMOUNT extends VerticalLayout {
 
     private void initDataGrid() {
         dataGrid.setItems(dataList);
-        // REPARARE: Numele coloanelor trebuie sa coincida cu campurile din Record
-        dataGrid.setColumns("orderId", "productId", "invoiceDate", "sales_amount");
+
+        // ELIMINĂ "orderId" de aici pentru a opri eroarea de mapare
+        dataGrid.setColumns("productId", "weight", "sales_amount", "invoiceDate");
+
+        // Opțional: Dacă vrei neapărat să afișezi ceva în loc de ID, poți adăuga o coloană calculată manual
+        // dataGrid.addColumn(item -> "N/A").setHeader("Order ID");
     }
 
     private List<OLAP_FACTS_SALES_AMOUNT> getRESTData() {

@@ -44,9 +44,9 @@ public class JFChart_LOGISTICS_EFFICIENCY extends VerticalLayout {
         HttpHeaders headers = new HttpHeaders();
         headers.setBasicAuth("spark", "sql");
 
-        SQLResponse<org.j4di.visualisation.olap.analytical.views.sales.OLAP_FACTS_SALES_AMOUNT> response = restTemplate.exchange(
+        SQLResponse<OLAP_FACTS_SALES_AMOUNT> response = restTemplate.exchange(
                 restDataServiceURL, HttpMethod.POST, new HttpEntity<>(sqlQuery, headers),
-                new ParameterizedTypeReference<SQLResponse<org.j4di.visualisation.olap.analytical.views.sales.OLAP_FACTS_SALES_AMOUNT>>() {}
+                new ParameterizedTypeReference<SQLResponse<OLAP_FACTS_SALES_AMOUNT>>() {}
         ).getBody();
 
         if (response != null && response.response() != null) {
