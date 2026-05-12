@@ -42,19 +42,16 @@ public class SparkSQLService {
 
     @PostConstruct
     public void init() {
-        // Rulăm pe un fir separat pentru a nu bloca pornirea aplicației
         new Thread(() -> {
             try {
-                logger.info(">>> ASTEPTARE 7 SECUNDE PENTRU START SERVER...");
-                Thread.sleep(7000);
+                logger.info(">>> ASTEPTARE INITIALIZARE SISTEM (10 sec)...");
+                Thread.sleep(10000);
                 executeSqlScript("scripts/SparkSQL_OLAP_Multidimensional_Analytical.sql");
-                logger.info(">>> PIPELINE SQL COMPLETA!");
             } catch (Exception e) {
                 e.printStackTrace();
             }
         }).start();
     }
-
     private void executeSqlScript(String path) {
         try {
             org.springframework.core.io.ClassPathResource res = new org.springframework.core.io.ClassPathResource(path);
